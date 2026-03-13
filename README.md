@@ -40,4 +40,3 @@ Update-Database
 
 B4: Ấn F5 hoặc bấm nút Play màu xanh ở thanh công cụ
 
-Vì nhiều thứ vẫn chưa rõ mong mn có thể để lại góp ý ạ
