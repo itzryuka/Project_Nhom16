@@ -36,7 +36,7 @@ B2: Chọn phần Tool -> Nuget Package Manager -> Package Manager Console
 
 B3: Viết và Enter lần lượt 2 hàm này để tạo Database
 
-Add-Migration ActiveSeedData
+Add-Migration InitialData
 
 Update-Database
 
