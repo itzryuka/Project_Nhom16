@@ -119,15 +119,9 @@ namespace BAO_Cinemas.Models
 
             // 5. SEED BOOKING (LỊCH SỬ ĐẶT VÉ/DOANH THU)
             modelBuilder.Entity<Booking>().HasData(
-                new Booking { Id = 1, CustomerName = "khach1@gmail.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "A1,A2", TotalPrice = 150000, BookingTime = new DateTime(2026, 3, 10, 14, 30, 0), ShowtimeId = 1 },
-                new Booking { Id = 2, CustomerName = "khach2@gmail.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "B5,B6,B7", TotalPrice = 225000, BookingTime = new DateTime(2026, 3, 11, 18, 0, 0), ShowtimeId = 1 },
-                new Booking { Id = 3, CustomerName = "khach3@gmail.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "C1,C2", TotalPrice = 180000, BookingTime = new DateTime(2026, 3, 12, 19, 30, 0), ShowtimeId = 2 },
-                new Booking { Id = 4, CustomerName = "khach4@gmail.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "D4", TotalPrice = 90000, BookingTime = new DateTime(2026, 3, 13, 20, 0, 0), ShowtimeId = 2 },
-                new Booking { Id = 5, CustomerName = "khach5@gmail.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "E1,E2,E3,E4", TotalPrice = 400000, BookingTime = new DateTime(2026, 3, 14, 10, 0, 0), ShowtimeId = 1 },
                 new Booking { Id = 6, CustomerName = "admin@baocinemas.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "A1", TotalPrice = 50000, BookingTime = DateTime.Parse("2026-03-14T00:46:53"), ShowtimeId = 10, UserId = adminUserId },
                 new Booking { Id = 7, CustomerName = "admin@baocinemas.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "A1", TotalPrice = 75000, BookingTime = DateTime.Parse("2026-03-14T00:52:11"), ShowtimeId = 4, UserId = adminUserId },
                 new Booking { Id = 8, CustomerName = "admin@baocinemas.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "A1", TotalPrice = 100000, BookingTime = DateTime.Parse("2026-03-14T00:54:58"), ShowtimeId = 12, UserId = adminUserId },
-                new Booking { Id = 9, CustomerName = "doanbaongo@baocinemas.com", CustomerPhone = "Không yêu cầu", SelectedSeats = "E8", TotalPrice = 75000, BookingTime = DateTime.Parse("2026-03-14T01:22:03"), ShowtimeId = 13, UserId = "2c560b88-4178-4531-9177-11b7430c4714" }
             );
         }
     }
