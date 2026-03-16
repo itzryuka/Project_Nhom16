@@ -5,28 +5,19 @@ Project mang chủ để về quản lý rạp phim
 
 Có 1 vài vấn đề lưu ý:
 
-1, Cần phải có SQL Server Management Studio (2022 hoặc hơn)
+Phải có SQL Server Management
 
-2, Có cài những Nuget - Solution (Packages for Solution)
+Project tôi thực hiện trên VS2022 nên chỉ dùng được .NET 9.0 các package cần thiết đều có sẵn
 
-Ở đây mình sử dụng .NET 9.0 nên tải phiên bản 9.0.14
+Nên nếu bạn dùng 10.0 thì hãy thực hiện như sau
 
-<img width="1163" height="98" alt="image" src="https://github.com/user-attachments/assets/9a99b5df-0b02-42a5-a154-002eac5d6b0b" />
-<img width="1174" height="121" alt="image" src="https://github.com/user-attachments/assets/e7f27a85-4f63-4f45-bff7-c49fae1ca09d" />
-<img width="1188" height="120" alt="image" src="https://github.com/user-attachments/assets/1ec84a7a-b5bc-424a-b5b9-0aa64ca335db" />
-<img width="1184" height="109" alt="image" src="https://github.com/user-attachments/assets/2f560dbc-df1f-4a80-9581-e74faceddeba" />
-<img width="1177" height="107" alt="image" src="https://github.com/user-attachments/assets/2aa34b17-8357-49d6-be76-daa76eaa4f9d" />
-<img width="1178" height="94" alt="image" src="https://github.com/user-attachments/assets/1b288c5c-6f39-4923-9cf8-028e9b7b47bc" />
-<img width="1184" height="126" alt="image" src="https://github.com/user-attachments/assets/97d1c609-f1cc-444a-9de9-80b5e77ba76a" />
+Chọn file BAO_Cinemas:
 
-Để tải được những thứ trên cần chuột phải vào Solution như hình dưới:
+chỉnh sửa đoạn <TargetFramework>net9.0</TargetFramework> thành <TargetFramework>net10.0</TargetFramework>
 
-<img width="476" height="237" alt="image" src="https://github.com/user-attachments/assets/d7bb8d55-b55e-49f4-8163-92947ae14a35" />
+và Chuột phải vào Solution 'BAO_Cinemas' -> chọn Manage NuGet Packages for Solution và update hết packages
 
-Chọn Manage Nuget Packages for Solution
-
-<img width="583" height="395" alt="image" src="https://github.com/user-attachments/assets/8dbee4a4-566b-4626-ae12-85dce6a79566" />
-
+Sau đó thì thực hiện bước dưới
 
 B1: Sau khi xong chọn file Models\ApplicationDbContext.cs
 
