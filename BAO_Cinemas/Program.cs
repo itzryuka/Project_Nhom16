@@ -21,17 +21,25 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
 .AddRoles<IdentityRole>() // Cho phép phân quyền Admin/User
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// 3. Đăng ký các dịch vụ MVC
+// 3. Đăng ký các dịch vụ MVC + API controllers
+builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddRazorPages(); // Rất quan trọng: Phải có dòng này để chạy trang Login/Register
 builder.Services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
 var app = builder.Build();
 
 // 4. Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BAO Cinemas API V1");
+        // Bỏ comment dòng dưới nếu bạn muốn khi chạy project là mở luôn trang Swagger
+        // c.RoutePrefix = string.Empty; 
+    });
 }
 
 app.UseHttpsRedirection();
@@ -42,6 +50,9 @@ app.UseRouting();
 // 5. THỨ TỰ CỰC KỲ QUAN TRỌNG: Authentication (Xác thực) phải trước Authorization (Phân quyền)
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map attribute-routed API controllers
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
