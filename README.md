@@ -1,5 +1,7 @@
 Project mang chủ để về quản lý rạp phim
 
+File video demo giao diện hoạt động của web: https://drive.google.com/file/d/1WshMY-Lz6ruYA8hysRQZc3ontBCUVibq/view?usp=sharing
+
 Được thực hiện 100% trên Visual Studio 2022 (.Net 9.0 hoặc hơn)
 
 
