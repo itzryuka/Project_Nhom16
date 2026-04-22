@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\banners\" />
+    <Folder Include="wwwroot\images\UI\" />
     <Folder Include="wwwroot\images\posters\" />
   </ItemGroup>
 
