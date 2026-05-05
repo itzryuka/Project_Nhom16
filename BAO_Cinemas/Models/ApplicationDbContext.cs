@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // Thêm dòng này
 using Microsoft.EntityFrameworkCore;
+using Mono.TextTemplating;
 
 namespace BAO_Cinemas.Models
 {
@@ -113,6 +114,32 @@ namespace BAO_Cinemas.Models
                 new Movie { Id = 18, Title = "Titanic", Genre = "Lãng mạn, Tâm lý", Duration = 194, ReleaseDate = new DateTime(1997, 12, 19), PosterUrl = "/images/posters/5534399c-a8ea-423e-a3ff-fe48c137c945_Titanic.jpg", CategoryId = 0 }
             );
 
+            // 3. Data Seeding cho Room (Khớp với TotalRows và SeatsPerRow của bạn)
+            modelBuilder.Entity<Room>().HasData(
+                new Room { Id = 1, Name = "Phòng 01", TotalRows = 7, SeatsPerRow = 14, Status = 1, CinemaId = 1 }
+            );
+
+            // 4. Data Seeding cho Seat (Khớp 100% với Model mới)
+            modelBuilder.Entity<Seat>().HasData(
+                new Seat { Id = 1, SeatCode = "A1", RowLabel = 'A', SeatNumber = 1, SeatType = "standard", Status = "active", RoomId = 1 },
+                new Seat { Id = 2, SeatCode = "A2", RowLabel = 'A', SeatNumber = 2, SeatType = "standard", Status = "active", RoomId = 1 },
+                new Seat { Id = 3, SeatCode = "B1", RowLabel = 'B', SeatNumber = 1, SeatType = "vip", Status = "active", RoomId = 1 }
+            );
+
+            // 5. Data Seeding cho Showtime
+            modelBuilder.Entity<Showtime>().HasData(
+                new Showtime
+                {
+                    Id = 1,
+                    MovieId = 1,
+                    CinemaId = 1,
+                    RoomId = 1,
+                    StartTime = new DateTime(2026, 5, 1, 19, 0, 0),
+                    EndTime = new DateTime(2026, 5, 1, 22, 0, 0),
+                    Price = 75000,
+                    Status = "scheduled"
+                }
+            );
         }
     }
 }
