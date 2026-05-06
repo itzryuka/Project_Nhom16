@@ -21,12 +21,17 @@
 }
 
 <style>
+    /*
+        Thiết lập chiều cao cố định cho Banner
+        object-fit: cover giúp ảnh không bị méo khi kích thước file ảnh khác nhau
+    */
     .banner-img {
         height: 500px;
         object-fit: cover;
         object-position: center;
     }
 
+    /* Tạo lớp phủ tối dần từ giữa xuống đáy ảnh để chữ trắng dễ đọc hơn */
     .carousel-overlay {
         position: absolute;
         top: 0;
@@ -40,7 +45,7 @@
         transition: transform 0.8s ease-in-out;
     }
 
-    /* CSS nhỏ giọt cho cái nhãn IMAX tự động */
+    /* Nhãn dán IMAX: Dùng position absolute để đè lên trên ảnh poster phim */
     .imax-badge {
         position: absolute;
         top: 10px;
@@ -56,6 +61,7 @@
     }
 </style>
 
+<!-- --- PHẦN HIỂN THỊ BANNER (CAROUSEL) --- -->
 <div id="heroBanner" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#heroBanner" data-bs-slide-to="0" class="active"></button>
@@ -64,6 +70,7 @@
     </div>
 
     <div class="carousel-inner" style="border-radius: 15px; overflow: hidden;">
+        <!-- Banner 1: Thẻ Active để khởi động Carousel -->
         <div class="carousel-item active">
             <img src="~/images/banners/Banner_1.jpg" class="d-block w-100 banner-img" alt="Banner 1">
         </div>
@@ -75,6 +82,7 @@
         </div>
     </div>
 
+    <!-- Nút điều hướng Trái/Phải của Banner -->
     <button class="carousel-control-prev" type="button" data-bs-target="#heroBanner" data-bs-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </button>
@@ -83,6 +91,7 @@
     </button>
 </div>
 
+<!-- --- TABS CHỌN CHẾ ĐỘ: ĐANG CHIẾU / SẮP CHIẾU --- -->
 <ul class="nav nav-pills justify-content-center mb-5 mt-5" id="movieTab" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active fw-bold fs-5 px-4 rounded-pill" id="now-showing-tab" data-bs-toggle="tab" data-bs-target="#now-showing" type="button" role="tab">
@@ -97,7 +106,7 @@
 </ul>
 
 <div class="tab-content mt-3">
-
+    <!-- NỘI DUNG TAB: ĐANG CHIẾU -->
     <div class="tab-pane fade show active" id="now-showing">
         <div class="row">
             @foreach (var item in nowShowingMovies)
@@ -106,7 +115,7 @@
                     <div class="movie-card custom-hover-card position-relative">
 
                         <img src="@item.PosterUrl" class="movie-poster" alt="@item.Title" />
-
+                        <!-- LOGIC BADGE TỰ ĐỘNG: Nếu trong danh sách suất chiếu có phòng tên 'IMAX' thì hiện nhãn -->
                         @if (item.Showtimes.Any(s => s.Room != null && s.Room.Name.ToUpper().Contains("IMAX")))
                         {
                             <span class="imax-badge">IMAX</span>
@@ -121,6 +130,7 @@
                                     <span>Khởi chiếu: @item.ReleaseDate.ToString("dd/MM/yyyy")</span>
                                 </p>
 
+                                <!-- Nút mở Modal: data-bs-target phải khớp với ID của Modal bên dưới -->
                                 <button class="btn btn-outline-light w-100 fw-bold"
                                         data-bs-toggle="modal"
                                         data-bs-target="#bookingModal-@item.Id">
@@ -131,6 +141,7 @@
                     </div>
                 </div>
 
+                <!-- MODAL ĐẶT VÉ (Nằm trong vòng lặp để mỗi phim có 1 bảng lịch chiếu riêng) -->
                 <div class="modal fade" id="bookingModal-@item.Id" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-xl modal-dialog-centered">
                         <div class="modal-content" style="background-color: #1f1f1f; color: white;">
@@ -144,6 +155,7 @@
                                     string[] dayNames = { "Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy" };
                                 }
 
+                                <!-- VÒNG LẶP TẠO 7 TAB NGÀY: Từ hôm nay đến 6 ngày tới -->
                                 <ul class="nav nav-pills date-pills d-flex gap-2 overflow-auto mb-4 pb-3 border-bottom border-secondary flex-nowrap" role="tablist" style="scrollbar-width: none;">
                                     @for (int i = 0; i < 7; i++)
                                     {
@@ -168,6 +180,7 @@
                                     @for (int i = 0; i < 7; i++)
                                     {
                                         var date = today.AddDays(i);
+                                        // Lọc suất chiếu của PHIM NÀY trong NGÀY ĐANG LẶP
                                         var isFirst = (i == 0);
 
                                         <div class="tab-pane fade @(isFirst ? "show active" : "")" id="content-@item.Id-day-@i" role="tabpanel">
@@ -180,6 +193,7 @@
 
                                             @if (showtimesForDay.Any())
                                             {
+                                                // GOM NHÓM: Nhóm các suất chiếu theo Cụm rạp (Cinema) để hiển thị chuyên nghiệp
                                                 var groupedByCinema = showtimesForDay.GroupBy(s => s.Cinema);
                                                 <div class="cinema-list text-start">
                                                     @foreach (var cinemaGroup in groupedByCinema)
@@ -191,6 +205,7 @@
                                                             <div class="d-flex flex-wrap gap-2">
                                                                 @foreach (var show in cinemaGroup)
                                                                 {
+                                                                    // Link dẫn sang trang chọn ghế, truyền ID của suất chiếu (ShowtimeId)
                                                                     <a asp-controller="Booking" asp-action="SeatSelection" asp-route-id="@show.Id" class="btn btn-outline-light text-center">
                                                                         <span class="d-block fw-bold fs-5">@show.StartTime.ToString("HH:mm")</span>
                                                                         <small class="text-warning">@show.Room.Name</small>
@@ -219,11 +234,13 @@
         </div>
     </div>
 
+    <!-- NỘI DUNG TAB: SẮP CHIẾU (Đơn giản hơn, không có modal đặt vé) -->
     <div class="tab-pane fade" id="coming-soon">
         <div class="row">
             @foreach (var item in comingSoonMovies)
             {
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <!-- Hiển thị poster và ngày khởi chiếu, nút Đặt vé bị vô hiệu hóa (disabled) -->
                     <div class="movie-card custom-hover-card">
                         <img src="@item.PosterUrl" class="movie-poster" alt="@item.Title" />
                         <div class="movie-overlay" style="background: rgba(0,0,0,0.8);">

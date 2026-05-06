@@ -6,28 +6,26 @@
 
 @{
     ViewData["Title"] = "Thống Kê Doanh Thu";
+
+    // Ép kiểu dữ liệu từ ViewBag (được truyền từ Controller) về đúng danh sách Model tương ứng.
+    // Điều này giúp Visual Studio có thể gợi ý code (IntelliSense) trong vòng lặp ở dưới.
     var movieTable = ViewBag.MovieTable as List<BAO_Cinemas.Controllers.MovieRevVM>;
     var dateTable = ViewBag.DateTable as List<BAO_Cinemas.Controllers.DailyRevVM>;
 }
 
 <div class="container-fluid mt-4 mb-5">
 
-    @* --- PHẦN TIÊU ĐỀ VÀ BỘ LỌC THÁNG --- *@
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
         <h2 class="text-warning fw-bold mb-0"><i class="bi bi-bar-chart-fill"></i> DOANH THU</h2>
 
-        @* Form chọn tháng: Khi thay đổi tháng, trang sẽ tự động submit để tải lại dữ liệu mới *@
         <form method="get" asp-action="RevenueReport" class="d-flex align-items-center gap-2">
             <label class="text-light fw-bold text-nowrap">Chọn tháng:</label>
-            @* Thuộc tính onchange="this.form.submit()" giúp người dùng không cần nhấn nút Tìm kiếm *@
             <input type="month" name="selectedMonth" value="@ViewBag.SelectedMonth" class="form-control bg-dark text-white border-secondary" onchange="this.form.submit()" />
         </form>
 
-        @* Hiển thị tổng doanh thu đã được định dạng số (N0) *@
         <h3 class="text-success fw-bold mb-0">Tổng: @ViewBag.TotalRevenue.ToString("N0") đ</h3>
     </div>
 
-    @* Kiểm tra xem tháng được chọn có dữ liệu hay không *@
     @if (movieTable == null || movieTable.Count == 0)
     {
         <div class="alert alert-warning text-center fw-bold">
@@ -36,21 +34,21 @@
     }
     else
     {
+        @* Khung chia đôi màn hình: Cột trái cho Phim, Cột phải cho Ngày *@
         <div class="row">
 
-            @* --- CỘT TRÁI: DOANH THU THEO PHIM --- *@
             <div class="col-md-6 mb-4">
+
+                @* 1. Phần Biểu đồ Phim *@
                 <div class="card bg-dark border-secondary shadow mb-3">
                     <div class="card-header border-secondary">
                         <h5 class="text-info fw-bold mb-0">DOANH THU THEO PHIM</h5>
                     </div>
                     <div class="card-body">
-                        @* Canvas để vẽ biểu đồ hình cột (Bar Chart) *@
                         <canvas id="movieChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
 
-                @* Bảng chi tiết doanh thu từng phim *@
                 <div class="table-responsive">
                     <table class="table table-dark table-hover table-bordered text-center align-middle">
                         <thead class="table-info text-dark">
@@ -61,6 +59,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @* Lặp qua danh sách phim để tạo các hàng (tr) cho bảng *@
                             @foreach (var item in movieTable)
                             {
                                 <tr>
@@ -74,8 +73,9 @@
                 </div>
             </div>
 
-            @* --- CỘT PHẢI: BIẾN ĐỘNG DOANH THU THEO NGÀY --- *@
             <div class="col-md-6 mb-4">
+
+                @* 1. Phần Biểu đồ Ngày *@
                 <div class="card bg-dark border-secondary shadow mb-3">
                     <div class="card-header border-secondary">
                         <h5 class="text-danger fw-bold mb-0">BIẾN ĐỘNG THEO NGÀY</h5>
@@ -86,7 +86,6 @@
                     </div>
                 </div>
 
-                @* Bảng chi tiết doanh thu từng ngày *@
                 <div class="table-responsive">
                     <table class="table table-dark table-hover table-bordered text-center align-middle">
                         <thead class="table-danger text-dark">
@@ -112,15 +111,15 @@
     }
 </div>
 
-@* Nhúng thư viện Chart.js để vẽ biểu đồ *@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // Chạy script sau khi toàn bộ HTML đã được tải xong (tránh việc tìm ID canvas bị lỗi null)
     document.addEventListener("DOMContentLoaded", function () {
-        // Kiểm tra dữ liệu nhãn (labels) từ server thông qua ViewBag.
-        // Dùng Html.Raw để chuyển chuỗi JSON từ C# thành mảng JavaScript
+        // Chỉ vẽ biểu đồ nếu có dữ liệu
         const movieLabelsCheck = @Html.Raw(ViewBag.MovieLabels ?? "[]");
 
+        // Chỉ khởi tạo Chart.js nếu mảng nhãn có chứa dữ liệu
         if (movieLabelsCheck.length > 0) {
 
             const movieLabels = @Html.Raw(ViewBag.MovieLabels);
@@ -128,38 +127,35 @@
             const dateLabels = @Html.Raw(ViewBag.DateLabels);
             const dateData = @Html.Raw(ViewBag.DateData);
 
-            // --- BIỂU ĐỒ THEO PHIM (DẠNG CỘT) ---
+            // Biểu đồ theo phim
             new Chart(document.getElementById('movieChart'), {
-                type: 'bar',
+                type: 'bar', // Dạng cột đứng
                 data: {
-                    labels: movieLabels,
+                    labels: movieLabels, // Tên các bộ phim (trục X)
                     datasets: [{
                         label: 'Doanh thu',
                         data: movieData,
-                        backgroundColor: 'rgba(13, 202, 240, 0.7)', /* Màu xanh cyan có độ trong suốt */
+                        backgroundColor: 'rgba(13, 202, 240, 0.7)',
                         borderColor: 'rgba(13, 202, 240, 1)',
                         borderWidth: 1
                     }]
                 },
-                options: { 
-                    plugins: { 
-                        legend: { display: false } } } /* Ẩn phần ghi chú để biểu đồ gọn hơn */
-    }
+                options: { plugins: { legend: { display: false } } }
             });
 
-    // --- BIỂU ĐỒ THEO NGÀY (DẠNG ĐƯỜNG) ---
+            // Biểu đồ theo ngày (Đổi thành Line - dạng đường kẻ cho đẹp)
             new Chart(document.getElementById('dateChart'), {
-                type: 'line',
+                type: 'line', // Dạng đường kẻ nối các điểm
                 data: {
-                    labels: dateLabels,
+                    labels: dateLabels, // Các ngày trong tháng (trục X)
                     datasets: [{
                         label: 'Doanh thu',
                         data: dateData,
-                        backgroundColor: 'rgba(220, 53, 69, 0.2)', // Vùng màu nhạt dưới đường kẻ
-                        borderColor: 'rgba(220, 53, 69, 1)', // Màu đỏ
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
                         borderWidth: 2,
-                        fill: true, // Tô màu vùng dưới đường kẻ
-                        tension: 0.3 // Tạo độ cong mềm mại cho đường biểu đồ
+                        fill: true,
+                        tension: 0.3 // Làm cong đường kẻ
                     }]
                 },
                 options: { 
