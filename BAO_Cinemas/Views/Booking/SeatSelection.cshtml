@@ -1,8 +1,11 @@
 ﻿@model BAO_Cinemas.Models.Showtime
+@* Model này chứa toàn bộ thông tin cần thiết: Phim, rạp, phòng chiếu và giá vé cơ bản *@
 
 @{
     ViewData["Title"] = "Chọn Ghế - " + Model.Movie.Title;
+    // Lấy danh sách các mã ghế đã được đặt từ ViewBag để đánh dấu trên sơ đồ
     var bookedSeats = ViewBag.BookedSeatCodes as List<string> ?? new List<string>();
+    // Khởi tạo danh sách các hàng ghế từ A đến G
     var rows = new[] { "A", "B", "C", "D", "E", "F", "G" };
 }
 
@@ -12,7 +15,8 @@
         color: white;
     }
 
-    .screen {
+    /* Hiệu ứng màn hình cong phía trên sơ đồ ghế để tạo cảm giác rạp phim thực tế */
+    .screen { 
         background: linear-gradient(to bottom, #ddd, #141414);
         height: 60px;
         width: 80%;
@@ -26,6 +30,7 @@
         letter-spacing: 5px;
     }
 
+    /* Định dạng chung cho một ô ghế */
     .seat {
         width: 35px;
         height: 35px;
@@ -46,10 +51,12 @@
             transform: scale(1.1);      
         }
 
+        /* Trạng thái khi người dùng click chọn ghế */
         .seat.selected {
             background-color: #dc3545;
         }
 
+        /* Trạng thái ghế đã có người mua: đổi màu tối và chặn tương tác chuột */
         .seat.booked {
             background-color: #1a1a1a;
             color: #333;
@@ -90,6 +97,7 @@
     </div>
 
     <div class="row">
+        @* CỘT TRÁI: Hiển thị thông tin phim và Tóm tắt hóa đơn *@
         <div class="col-md-3">
             <img src="@Model.Movie.PosterUrl" class="w-100 rounded mb-3 shadow" />
             <h5 class="fw-bold text-warning text-uppercase">@Model.Movie.Title</h5>
@@ -98,6 +106,7 @@
             <p class="mb-1 text-light"><i class="bi bi-calendar3"></i> @Model.StartTime.ToString("dd/MM/yyyy - HH:mm")</p>
             <h6 class="mt-3 text-secondary">Giá vé: @Model.Price.ToString("N0") VNĐ / Ghế</h6>
          
+            @* Box Hóa đơn: Mặc định ẩn (d-none), chỉ hiện khi có ghế được chọn *@
             <div id="checkoutBox" class="bg-dark p-3 rounded shadow mt-4 border border-danger d-none">
                 <h5 class="text-white border-bottom border-secondary pb-2 mb-3">Hóa Đơn</h5>
                 <div class="d-flex justify-content-between mb-2">
@@ -115,15 +124,18 @@
             </div>
         </div>
 
+        @* CỘT PHẢI: Sơ đồ ghế ngồi *@
         <div class="col-md-9">
             <div class="bg-dark p-4 rounded shadow">
                 <div class="screen">MÀN HÌNH</div>
 
                 <div class="seat-map mb-5">
+                    @* Vòng lặp tạo các hàng ghế (A-G) *@
                     @foreach (var row in rows)
                     {
                         <div class="seat-row">
                             <div class="row-label">@row</div>
+                            @* Vòng lặp tạo 14 ghế trong mỗi hàng *@
                             @for (int col = 1; col <= 14; col++)
                             {
                                 var seatName = $"{row}{col}";
@@ -138,6 +150,7 @@
                     }
                 </div>
 
+                @* Chú thích các loại ghế *@
                 <div class="d-flex justify-content-center gap-4 border-top border-secondary pt-4 mt-2">
                     <div class="d-flex align-items-center"><span class="legend-seat" style="background-color: #444;"></span> Trống</div>
                     <div class="d-flex align-items-center"><span class="legend-seat" style="background-color: #dc3545;"></span> Đang chọn</div>
@@ -148,6 +161,7 @@
     </div>
 </div>
 
+@* MODAL XÁC NHẬN: Hiện lên trước khi gửi dữ liệu về Server *@
 <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-white border-danger">
@@ -155,8 +169,10 @@
                 <h5 class="modal-title text-warning fw-bold">XÁC NHẬN THANH TOÁN</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+            @* Form gửi dữ liệu đặt vé về Action ConfirmBooking trong Controller *@
             <form asp-action="ConfirmBooking" method="post">
                 <div class="modal-body">
+                    @* Các input ẩn để truyền dữ liệu ngầm lên server *@
                     <input type="hidden" name="showtimeId" value="@Model.Id" />
                     <input type="hidden" id="modalHiddenSeats" name="selectedSeats" />
 
@@ -179,47 +195,54 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Lấy giá vé từ Model C# truyền vào JS để tính toán
         const pricePerSeat = @Model.Price;
         const seats = document.querySelectorAll('.seat.available');
         const checkoutBox = document.getElementById('checkoutBox');
         const selectedSeatsText = document.getElementById('selectedSeatsText');
         const totalPriceText = document.getElementById('totalPriceText');
         
-        // Các phần tử trong Modal
+        // Tham chiếu đến các phần tử trong Modal để cập nhật dữ liệu hiển thị
         const modalHiddenSeats = document.getElementById('modalHiddenSeats');
         const modalSeatDisplay = document.getElementById('modalSeatDisplay');
         const modalPriceDisplay = document.getElementById('modalPriceDisplay');
 
+        // Gán sự kiện Click cho từng ghế trống
         seats.forEach(seat => {
             seat.addEventListener('click', function() {
+                // Bật/Tắt trạng thái chọn ghế
                 this.classList.toggle('selected');
-                updateCheckout();
+                updateCheckout(); // Cập nhật lại thông tin hóa đơn mỗi khi click
             });
         });
 
+        /**
+         * Hàm cập nhật thông tin hiển thị và dữ liệu ngầm dựa trên các ghế đang chọn
+         */
         function updateCheckout() {
+            // Tìm tất cả các ghế có class 'selected'
             const selectedSeats = document.querySelectorAll('.seat.selected');
             const seatsArray = Array.from(selectedSeats).map(s => s.getAttribute('data-seat'));
 
             if (seatsArray.length > 0) {
-                // 1. Hiện khung hóa đơn và nút xác nhận
+                // Hiện khung hóa đơn nếu có ít nhất 1 ghế được chọn
                 checkoutBox.classList.remove('d-none');
 
-                // 2. Tính toán con số
+                // Tính toán tổng tiền: Total = Số lượng ghế * Đơn giá
                 const total = seatsArray.length * pricePerSeat;
                 const formattedTotal = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
                 const seatNames = seatsArray.join(', ');
 
-                // 3. Cập nhật giao diện bên ngoài
+                // Cập nhật giao diện bên ngoài Sidebar
                 selectedSeatsText.textContent = seatNames;
                 totalPriceText.textContent = formattedTotal;
 
-                // 4. Cập nhật dữ liệu vào Modal (để khi hiện lên có sẵn thông tin)
+                // Cập nhật dữ liệu vào Modal xác nhận và input hidden để gửi form
                 if(modalHiddenSeats) modalHiddenSeats.value = seatsArray.join(',');
                 if(modalSeatDisplay) modalSeatDisplay.textContent = seatNames;
                 if(modalPriceDisplay) modalPriceDisplay.textContent = formattedTotal;
             } else {
-                // Giấu đi nếu không chọn ghế nào
+                // Ẩn hóa đơn nếu người dùng bỏ chọn tất cả các ghế
                 checkoutBox.classList.add('d-none');
             }
         }

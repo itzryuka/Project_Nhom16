@@ -1,27 +1,37 @@
 ﻿@model IEnumerable<Room>
+@*
+    Model: Nhận vào một danh sách các đối tượng Phòng (Room).
+    Sử dụng IEnumerable giúp tối ưu việc duyệt dữ liệu chỉ đọc.
+*@
 
 @{
-    // Lấy thông tin Rạp từ Controller gửi sang để làm tiêu đề
+    // Lấy thông tin Rạp từ Controller thông qua ViewBag để hiển thị tiêu đề động theo từng rạp
     var cinema = ViewBag.CinemaInfo as BAO_Cinemas.Models.Cinema;
     ViewData["Title"] = $"Danh sách Phòng - {cinema?.Name}";
 }
 
 <div class="container-fluid bg-dark text-white p-4 mt-4 rounded shadow">
+
+    @* --- PHẦN TIÊU ĐỀ VÀ ĐIỀU HƯỚNG --- *@
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
         <h2 class="fw-bold text-color m-0">
             <i class="bi bi-door-open-fill"></i> Quản lý Phòng: <span class="text-info">@cinema?.Name</span>
         </h2>
 
         <div>
+            @* Quay lại danh sách rạp tổng quát *@
             <a asp-action="Cinema" class="btn btn-outline-light me-2">
                 <i class="bi bi-arrow-left"></i> Về danh sách Rạp
             </a>
+            @* Nút thêm phòng: Truyền kèm CinemaId để biết phòng mới thuộc về rạp nào *@
             <a asp-action="CreateRoom" asp-route-cinemaId="@cinema?.Id" class="btn btn-light fw-bold text-dark">
                 <i class="bi bi-plus-lg"></i> Thêm Phòng Mới
             </a>
         </div>
     </div>
 
+    @* --- HỆ THỐNG THÔNG BÁO PHẢN HỒI (FEEDBACK) --- *@
+    @* Hiển thị thông báo lỗi nếu thao tác xóa/sửa thất bại *@
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
@@ -29,6 +39,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    @* Hiển thị thông báo thành công sau khi cập nhật dữ liệu *@
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
@@ -37,6 +49,7 @@
         </div>
     }
 
+    @* --- BẢNG DỮ LIỆU PHÒNG CHIẾU --- *@
     <div class="table-responsive">
         <table class="table table-dark table-hover table-bordered align-middle text-center">
             <thead class="table-secondary text-dark">
@@ -51,6 +64,7 @@
             <tbody>
                 @if (Model != null && Model.Any())
                 {
+                    @* Duyệt qua từng phòng trong danh sách gửi từ Controller *@
                     foreach (var item in Model)
                     {
                         <tr>
@@ -59,6 +73,10 @@
                             <td>@item.TotalSeats ghế</td>
 
                             <td>
+                                @*
+                                    Phân loại trạng thái bằng mã màu Badge:
+                                    1: Hoạt động (Xanh), 2: Bảo trì (Vàng), 3: Dừng (Đỏ)
+                                *@
                                 @if (item.Status == 1)
                                 {
                                     <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle"></i> Đang hoạt động</span>
@@ -75,9 +93,14 @@
 
                             <td>
                                 <div class="d-flex justify-content-center gap-2">
+                                    @* Nút sửa: Điều hướng tới form chỉnh sửa phòng cụ thể *@
                                     <a asp-action="EditRoom" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Sửa phòng">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
+                                    @*
+                                        Nút xóa: Có JS xác nhận trước khi thực hiện hành động nguy hiểm.
+                                        Lưu ý: Xóa phòng sẽ ảnh hưởng đến các suất chiếu liên quan.
+                                    *@
                                     <a asp-action="DeleteRoom" asp-route-id="@item.Id"
                                        class="btn btn-sm btn-outline-danger"
                                        onclick="return confirm('Bạn có chắc chắn muốn xóa phòng này? Toàn bộ lịch chiếu của phòng sẽ bị ảnh hưởng!');"
@@ -91,6 +114,7 @@
                 }
                 else
                 {
+                    @* Hiển thị thông báo thân thiện khi rạp chưa được cấu hình phòng *@
                     <tr>
                         <td colspan="5" class="text-center text-secondary py-5">
                             <i class="bi bi-door-closed fs-1 d-block mb-2"></i>

@@ -1,4 +1,5 @@
 ﻿@model Booking
+@* Model này chứa dữ liệu của một Giao dịch Đặt vé (Booking), bao gồm ID hóa đơn, tổng tiền, thời gian đặt và liên kết tới suất chiếu (Showtime) *@
 
 @{
     ViewData["Title"] = "Đặt Vé Thành Công";
@@ -11,71 +12,81 @@
         color: white;
     }
 
-    /* Thiết kế form giống 1 tấm vé thật */
+    /* Thiết kế container chính mô phỏng hình dáng 1 tấm vé điện tử */
     .ticket-container {
-        background: #1f1f1f;
-        border-radius: 15px;
+        background: #1f1f1f; /* Màu nền xám đậm */
+        border-radius: 15px; /* Bo góc vé */
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Đổ bóng để tạo độ nổi */
         border: 1px solid #333;
         position: relative;
     }
 
-    /* Đường cắt nét đứt giữa thân vé */
+    /* Tạo đường cắt ngang (nét đứt) phân chia các phần của vé (giống vé xé giấy) */
     .ticket-divider {
-        border-top: 2px dashed #444;
+        border-top: 2px dashed #444; /* Nét đứt màu xám */
         position: relative;
-        margin: 20px 0;
+        margin: 20px 0; /* Khoảng cách trên và dưới đường cắt */
     }
 
+        /* Tạo hai lỗ khuyết hình bán nguyệt ở hai đầu đường nét đứt, đặc trưng của vé truyền thống */
         .ticket-divider::before, .ticket-divider::after {
             content: '';
             position: absolute;
-            top: -15px;
+            top: -15px; /* Đẩy lên trên để tạo thành hình tròn cắt ngang vạch đứt */
             width: 30px;
             height: 30px;
-            background-color: #141414;
-            border-radius: 50%;
-            border: 1px solid #333;
+            background-color: #141414; /* Trùng với màu nền của body để "giấu" đi */
+            border-radius: 50%; /* Tạo hình tròn */
+            border: 1px solid #333; /* Viền trùng với viền của ticket-container */
+    }
         }
 
+        /* Đặt lỗ khuyết bên trái */
         .ticket-divider::before {
-            left: -35px;
+            left: -35px; /* Kéo ra sát lề trái */
             border-left: transparent;
             border-top: transparent;
-            border-bottom: transparent;
+            border-bottom: transparent; /* Chỉ giữ viền bên phải để khớp với khung vé */
         }
 
+        /*Đặt lỗ khuyết bên phải */
         .ticket-divider::after {
-            right: -35px;
+            right: -35px; /* Kéo ra sát lề phải */
             border-right: transparent;
             border-top: transparent;
-            border-bottom: transparent;
+        border-bottom: transparent; /* Chỉ giữ viền bên trái để khớp với khung vé */
         }
 </style>
 
+@* PHẦN 1: Thông báo xác nhận thành công *@
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-md-6 text-center mb-4">
+            @* Icon dấu tích xanh biểu thị giao dịch hoàn tất *@
             <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
             <h2 class="text-white mt-3 fw-bold">ĐẶT VÉ THÀNH CÔNG!</h2>
         </div>
     </div>
-
+    
+    @* PHẦN 2: Khu vực hiển thị Tấm Vé Điện Tử *@
     <div class="row justify-content-center">
         <div class="col-md-5">
             <div class="ticket-container p-4">
+                @* Header của vé: Tên rạp và Nhãn dán vé *@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-danger fw-bold mb-0">BAO CINEMAS</h4>
                     <span class="badge bg-danger fs-6">VÉ ĐIỆN TỬ</span>
                 </div>
 
+                @* Khối thông tin Phim: Lấy dữ liệu qua các thực thể liên kết (Navigation Properties) *@
                 <div class="row mb-3">
                     <div class="col-4">
-                        @* Truy cập thông qua Showtime để lấy thông tin phim *@
+                        @* Truy cập thông qua Showtime -> Movie để lấy Poster phim *@
                         <img src="@Model.Showtime.Movie.PosterUrl" class="w-100 rounded shadow-sm" alt="Poster" />
                     </div>
                     <div class="col-8">
+                        @* Thông tin Phim, Rạp, Phòng chiếu và Thời lượng *@
                         <h5 class="text-warning fw-bold text-uppercase">@Model.Showtime.Movie.Title</h5>
                         <p class="text-light mb-1"><i class="bi bi-geo-alt"></i> @Model.Showtime.Cinema.Name</p>
                         <p class="text-light mb-1"><i class="bi bi-door-open"></i> @Model.Showtime.Room.Name</p>
@@ -83,29 +94,35 @@
                     </div>
                 </div>
 
+                @* Đường cắt nét đứt thứ nhất *@
                 <div class="ticket-divider"></div>
 
+                @* Khối Chi tiết Thanh toán: Ghế đã chọn và Tổng số tiền *@
                 <div class="row text-center mb-3">
                     <div class="col-6 border-end border-secondary">
                         <small class="text-secondary d-block">GHẾ CỦA BẠN</small>
-                        @* Lấy ghế từ database *@
+                        @*TODO: Bổ sung code để hiển thị danh sách các mã ghế liên quan tới Booking này (Ví dụ: A1, A2). Hiện tại chưa có code xử lý hiển thị ở đây *@
                     </div>
                     <div class="col-6">
                         <small class="text-secondary d-block">TỔNG TIỀN</small>
-                        @* Lấy giá tiền đã lưu trong hóa đơn *@
+                        @* Định dạng Tổng tiền lấy trực tiếp từ database của đối tượng Booking *@
                         <h3 class="text-danger fw-bold mb-0">@Model.TotalPrice.ToString("N0")đ</h3>
                     </div>
                 </div>
 
+                @* Đường cắt nét đứt thứ hai *@
                 <div class="ticket-divider"></div>
 
+                @* Khối Footer vé: Thông tin để quản lý (Mã Hóa Đơn và Ngày Giao Dịch) *@
                 <div class="text-center mt-4">
-                    @* QR Code chứa ID giao dịch và ghế *@
+                    @* Mã hóa đơn được sinh ra bằng cách gắn thêm tiền tố #BAO- vào trước ID của Booking *@
                     <p class="text-secondary small mb-0">Mã hóa đơn: <strong class="text-light">#BAO-@Model.Id</strong></p>
+                    @* Thời gian hệ thống ghi nhận giao dịch thành công *@
                     <p class="text-secondary small">Ngày giao dịch: @Model.BookingTime.ToString("dd/MM/yyyy HH:mm")</p>
                 </div>
             </div>
 
+            @* Nút Điều hướng: Trở về trang chủ *@
             <div class="text-center mt-4">
                 <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light px-5 py-2 fw-bold">
                     VỀ TRANG CHỦ

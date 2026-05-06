@@ -1,23 +1,32 @@
 ﻿@model IEnumerable<BAO_Cinemas.Models.Showtime>
+@*
+    Model: Danh sách các suất chiếu (Showtime) của một bộ phim cụ thể.
+    Dữ liệu này được sử dụng để đổ vào bảng danh sách phía dưới.
+*@
 
 @{
+    // Lấy thông tin phim từ ViewBag để hiển thị tiêu đề và tên phim trên trang
     var movie = ViewBag.MovieInfo as BAO_Cinemas.Models.Movie;
     ViewData["Title"] = $"Lịch Chiếu: {movie?.Title}";
 }
 
 <div class="container-fluid bg-dark text-white p-4 mt-4 rounded shadow">
+    @* --- PHẦN TIÊU ĐỀ: Hiển thị tên phim đang xem lịch --- *@
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
         <h2 class="fw-bold text-warning m-0">
             <i class="bi bi-clock-history"></i> Lịch Chiếu: <span class="text-info">@movie?.Title</span>
         </h2>
 
         <div>
+            @* Nút quay lại danh sách quản lý lịch chiếu tổng quát *@
             <a asp-action="Showtime" class="btn btn-outline-light">
                 <i class="bi bi-arrow-left"></i> Về Danh sách Phim
             </a>
         </div>
     </div>
 
+    @* --- HỆ THỐNG THÔNG BÁO (ALERTS) --- *@
+    @* Hiển thị thông báo nếu có lỗi xảy ra (ví dụ: không thể xóa suất chiếu đã có người đặt vé) *@
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
@@ -25,6 +34,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    @* Hiển thị thông báo thành công khi cập nhật hoặc xóa suất chiếu thành công *@
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
@@ -33,6 +43,7 @@
         </div>
     }
 
+    @* --- BẢNG CHI TIẾT CÁC SUẤT CHIẾU --- *@
     <div class="table-responsive">
         <table class="table table-dark table-hover table-bordered align-middle text-center">
             <thead class="table-secondary text-dark">
@@ -48,6 +59,7 @@
             <tbody>
                 else
                 {
+                    @* Hiển thị khi phim không có hoặc đã hết lịch chiếu *@
                     <tr>
                         <td colspan="6" class="text-center text-secondary py-5">
                             <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
