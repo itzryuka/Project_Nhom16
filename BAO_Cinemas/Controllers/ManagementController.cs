@@ -7,14 +7,25 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BAO_Cinemas.Controllers
 {
+    /// <summary>
+    /// Chức năng: Lớp Controller quản lý toàn bộ nghiệp vụ Backend dành cho Admin 
+    /// (Bao gồm: Phim, Rạp, Phòng chiếu, Suất chiếu, Doanh thu).
+    /// </summary>
     public class ManagementController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
+        /// <summary>
+        /// Chức năng: Khởi tạo Controller, tiêm (inject) các dịch vụ cần thiết.
+        /// </summary>
+        /// <param name="context">Ống kết nối cơ sở dữ liệu.</param>
+        /// <param name="webHostEnvironment">Môi trường host để xử lý lưu file ảnh.</param>
         public ManagementController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
@@ -22,18 +33,32 @@ namespace BAO_Cinemas.Controllers
         }
 
         // =================================================================
-        // ======================= QUẢN LÝ PHIM ============================
+        // ======================= 1. MODULE QUẢN LÝ PHIM ==================
         // =================================================================
 
+        /// <summary>
+        /// Chức năng: Hiển thị danh sách toàn bộ phim.
+        /// </summary>
+        /// <returns>View chứa danh sách List&lt;Movie&gt;.</returns>
         public async Task<IActionResult> Movie()
         {
             var movies = await _context.Movies.ToListAsync();
             return View(movies);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị form thêm phim mới.
+        /// </summary>
+        /// <returns>View form tạo phim.</returns>
         [HttpGet]
         public IActionResult CreateMovie() => View();
 
+        /// <summary>
+        /// Chức năng: Xử lý lưu thông tin phim mới và upload ảnh poster.
+        /// </summary>
+        /// <param name="movie">Dữ liệu phim từ form.</param>
+        /// <param name="PosterFile">File ảnh tải lên.</param>
+        /// <returns>Chuyển hướng về trang danh sách phim (nếu thành công) hoặc trả lại View kèm lỗi.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMovie(Movie movie, IFormFile PosterFile)
@@ -63,6 +88,11 @@ namespace BAO_Cinemas.Controllers
             return View(movie);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị form chỉnh sửa phim.
+        /// </summary>
+        /// <param name="id">Mã phim.</param>
+        /// <returns>View chỉnh sửa kèm dữ liệu phim, hoặc NotFound nếu không tìm thấy.</returns>
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -72,6 +102,14 @@ namespace BAO_Cinemas.Controllers
             return View(movie);
         }
 
+        /// <summary>
+        /// Chức năng: Xử lý cập nhật thông tin phim và thay đổi ảnh poster (nếu có).
+        /// </summary>
+        /// <param name="id">Mã phim.</param>
+        /// <param name="movie">Dữ liệu mới.</param>
+        /// <param name="PosterFile">Ảnh mới (tùy chọn).</param>
+        /// <returns>Chuyển hướng về trang danh sách phim hoặc View lỗi.</returns>
+        /// <exception cref="Exception">Bắt lỗi khi thao tác DB hoặc lưu file, ghi lỗi vào ModelState.</exception>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Movie movie, IFormFile? PosterFile)
@@ -85,6 +123,7 @@ namespace BAO_Cinemas.Controllers
                 {
                     var existingMovie = await _context.Movies.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
                     if (existingMovie == null) return NotFound();
+
                     if (PosterFile != null && PosterFile.Length > 0)
                     {
                         string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(PosterFile.FileName);
@@ -110,11 +149,18 @@ namespace BAO_Cinemas.Controllers
             return View(movie);
         }
 
+        /// <summary>
+        /// Chức năng: Xóa một bộ phim và file ảnh vật lý tương ứng. Chặn xóa nếu phim đang có suất chiếu.
+        /// </summary>
+        /// <param name="id">Mã phim.</param>
+        /// <returns>Chuyển hướng về trang danh sách phim kèm thông báo.</returns>
+        /// <exception cref="Exception">Bắt lỗi khi xóa file ảnh hoặc lỗi DB, ghi thông báo vào TempData.</exception>
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
             var movie = await _context.Movies.Include(m => m.Showtimes).FirstOrDefaultAsync(m => m.Id == id);
             if (movie == null) return NotFound();
+
             if (movie.Showtimes != null && movie.Showtimes.Any())
             {
                 TempData["ErrorMessage"] = $"Không thể xóa phim '{movie.Title}' vì đang có {movie.Showtimes.Count} suất chiếu.";
@@ -139,9 +185,13 @@ namespace BAO_Cinemas.Controllers
         }
 
         // =================================================================
-        // ======================= QUẢN LÝ RẠP ============================
+        // ======================= 2. MODULE QUẢN LÝ RẠP ===================
         // =================================================================
 
+        /// <summary>
+        /// Chức năng: Hiển thị danh sách rạp chiếu phim.
+        /// </summary>
+        /// <returns>View chứa danh sách List&lt;Cinema&gt;.</returns>
         [HttpGet]
         public async Task<IActionResult> Cinema()
         {
@@ -149,9 +199,18 @@ namespace BAO_Cinemas.Controllers
             return View(cinemas);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị form tạo rạp mới.
+        /// </summary>
+        /// <returns>View form tạo rạp.</returns>
         [HttpGet]
         public IActionResult CreateCinema() => View();
 
+        /// <summary>
+        /// Chức năng: Xử lý lưu thông tin rạp mới.
+        /// </summary>
+        /// <param name="cinema">Dữ liệu rạp.</param>
+        /// <returns>Chuyển hướng hoặc View lỗi.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCinema(Cinema cinema)
@@ -167,6 +226,11 @@ namespace BAO_Cinemas.Controllers
             return View(cinema);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị form chỉnh sửa rạp.
+        /// </summary>
+        /// <param name="id">Mã rạp.</param>
+        /// <returns>View form chỉnh sửa.</returns>
         [HttpGet]
         public async Task<IActionResult> EditCinema(int? id)
         {
@@ -176,6 +240,12 @@ namespace BAO_Cinemas.Controllers
             return View(cinema);
         }
 
+        /// <summary>
+        /// Chức năng: Xử lý cập nhật thông tin rạp.
+        /// </summary>
+        /// <param name="id">Mã rạp.</param>
+        /// <param name="cinema">Dữ liệu rạp mới.</param>
+        /// <returns>Chuyển hướng hoặc View lỗi.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCinema(int id, Cinema cinema)
@@ -192,11 +262,17 @@ namespace BAO_Cinemas.Controllers
             return View(cinema);
         }
 
+        /// <summary>
+        /// Chức năng: Xóa rạp chiếu. Chặn xóa nếu rạp đang có phòng chiếu.
+        /// </summary>
+        /// <param name="id">Mã rạp.</param>
+        /// <returns>Chuyển hướng kèm thông báo kết quả.</returns>
         public async Task<IActionResult> DeleteCinema(int? id)
         {
             if (id == null) return NotFound();
             var cinema = await _context.Cinemas.Include(c => c.Rooms).FirstOrDefaultAsync(c => c.Id == id);
             if (cinema == null) return NotFound();
+
             if (cinema.Rooms != null && cinema.Rooms.Any())
             {
                 TempData["ErrorMessage"] = $"Không thể xóa rạp '{cinema.Name}' vì đang có {cinema.Rooms.Count} phòng chiếu.";
@@ -209,9 +285,14 @@ namespace BAO_Cinemas.Controllers
         }
 
         // =================================================================
-        // ======================= QUẢN LÝ PHÒNG ===========================
+        // ======================= 3. MODULE QUẢN LÝ PHÒNG & GHẾ ===========
         // =================================================================
 
+        /// <summary>
+        /// Chức năng: Hiển thị danh sách phòng của một rạp cụ thể.
+        /// </summary>
+        /// <param name="cinemaId">Mã rạp.</param>
+        /// <returns>View danh sách phòng thuộc rạp.</returns>
         [HttpGet]
         public async Task<IActionResult> RoomList(int? cinemaId)
         {
@@ -223,15 +304,24 @@ namespace BAO_Cinemas.Controllers
             return View(rooms);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị form thêm phòng mới (khởi tạo số hàng, ghế mặc định).
+        /// </summary>
+        /// <param name="cinemaId">Mã rạp.</param>
+        /// <returns>View form tạo phòng.</returns>
         [HttpGet]
         public IActionResult CreateRoom(int? cinemaId)
         {
             if (cinemaId == null) return NotFound("Không xác định được rạp để thêm phòng.");
-            // FIX: Dùng TotalRows + SeatsPerRow thay vì TotalSeats
             var room = new Room { CinemaId = cinemaId.Value, TotalRows = 7, SeatsPerRow = 14, Status = 1 };
             return View(room);
         }
 
+        /// <summary>
+        /// Chức năng: Lưu phòng mới và gọi hàm phụ trợ tự sinh sơ đồ ghế.
+        /// </summary>
+        /// <param name="room">Dữ liệu phòng.</param>
+        /// <returns>Chuyển hướng kèm thông báo thành công.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRoom(Room room)
@@ -245,7 +335,6 @@ namespace BAO_Cinemas.Controllers
                 _context.Rooms.Add(room);
                 await _context.SaveChangesAsync();
 
-                // FIX: Sau khi tạo phòng, tự động generate Seats cho phòng đó
                 await GenerateSeatsForRoom(room.Id, room.TotalRows, room.SeatsPerRow);
 
                 TempData["SuccessMessage"] = $"Đã thêm {room.Name} và tạo {room.TotalRows * room.SeatsPerRow} ghế thành công!";
@@ -254,7 +343,14 @@ namespace BAO_Cinemas.Controllers
             return View(room);
         }
 
-        // Helper: Tự động tạo ghế khi thêm phòng mới (thay thế BookedSeats)
+        /// <summary>
+        /// Chức năng: Hàm phụ trợ tự sinh danh sách ghế (Seat) và lưu DB dựa trên cấu hình hàng/cột của phòng.
+        /// </summary>
+        /// <param name="roomId">Mã phòng.</param>
+        /// <param name="totalRows">Tổng số hàng.</param>
+        /// <param name="seatsPerRow">Số ghế mỗi hàng.</param>
+        /// <param name="vipRows">Số lượng hàng VIP ở giữa (Mặc định: 2).</param>
+        /// <returns>Task bất đồng bộ.</returns>
         private async Task GenerateSeatsForRoom(int roomId, int totalRows, int seatsPerRow, int vipRows = 2)
         {
             var seats = new List<Seat>();
@@ -283,6 +379,11 @@ namespace BAO_Cinemas.Controllers
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Chức năng: Cập nhật thông tin phòng chiếu (Tên, Trạng thái).
+        /// </summary>
+        /// <param name="id">Mã phòng.</param>
+        /// <returns>View chứa dữ liệu phòng.</returns>
         [HttpGet]
         public async Task<IActionResult> EditRoom(int? id)
         {
@@ -292,6 +393,12 @@ namespace BAO_Cinemas.Controllers
             return View(room);
         }
 
+        /// <summary>
+        /// Chức năng: Xử lý lưu thông tin phòng sau chỉnh sửa.
+        /// </summary>
+        /// <param name="id">Mã phòng.</param>
+        /// <param name="room">Dữ liệu mới.</param>
+        /// <returns>Chuyển hướng hoặc View lỗi.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditRoom(int id, Room room)
@@ -310,6 +417,11 @@ namespace BAO_Cinemas.Controllers
             return View(room);
         }
 
+        /// <summary>
+        /// Chức năng: Xóa phòng chiếu và toàn bộ ghế thuộc phòng đó. Chặn xóa nếu đang có suất chiếu.
+        /// </summary>
+        /// <param name="id">Mã phòng.</param>
+        /// <returns>Chuyển hướng kèm thông báo.</returns>
         public async Task<IActionResult> DeleteRoom(int? id)
         {
             if (id == null) return NotFound();
@@ -326,7 +438,6 @@ namespace BAO_Cinemas.Controllers
                 return RedirectToAction(nameof(RoomList), new { cinemaId = currentCinemaId });
             }
 
-            // FIX: Xóa tất cả Seats của phòng trước khi xóa phòng
             var seats = _context.Seats.Where(s => s.RoomId == id);
             _context.Seats.RemoveRange(seats);
 
@@ -337,9 +448,14 @@ namespace BAO_Cinemas.Controllers
         }
 
         // =================================================================
-        // ======================= QUẢN LÝ SUẤT CHIẾU ======================
+        // ======================= 4. MODULE QUẢN LÝ SUẤT CHIẾU ============
         // =================================================================
 
+        /// <summary>
+        /// Chức năng: Hiển thị trang quản lý suất chiếu, hỗ trợ tìm kiếm theo tên phim.
+        /// </summary>
+        /// <param name="searchString">Từ khóa tìm kiếm.</param>
+        /// <returns>View danh sách phim có suất chiếu.</returns>
         [HttpGet]
         public async Task<IActionResult> Showtime(string searchString)
         {
@@ -359,15 +475,19 @@ namespace BAO_Cinemas.Controllers
             return View(movies);
         }
 
+        /// <summary>
+        /// Chức năng: Xử lý thêm suất chiếu mới. Validate giờ chiếu và kiểm tra xung đột lịch chiếu.
+        /// </summary>
+        /// <param name="showtime">Dữ liệu suất chiếu.</param>
+        /// <returns>Chuyển hướng kèm thông báo (Thành công hoặc Lỗi xung đột).</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateShowtime(Showtime showtime)
         {
-            // FIX: Bỏ BookedSeats khỏi ModelState.Remove (không còn tồn tại)
             ModelState.Remove("Movie");
             ModelState.Remove("Room");
             ModelState.Remove("Cinema");
-            ModelState.Remove("BookingSeats"); // Thay BookedSeats → BookingSeats
+            ModelState.Remove("BookingSeats");
             ModelState.Remove("Status");
 
             if (ModelState.IsValid)
@@ -391,7 +511,6 @@ namespace BAO_Cinemas.Controllers
                     return RedirectToAction(nameof(Showtime));
                 }
 
-                // FIX: Không còn set BookedSeats = "" — chỉ set Status mới
                 showtime.Status = "scheduled";
                 _context.Showtimes.Add(showtime);
                 await _context.SaveChangesAsync();
@@ -400,6 +519,11 @@ namespace BAO_Cinemas.Controllers
             return RedirectToAction(nameof(Showtime));
         }
 
+        /// <summary>
+        /// Chức năng: API phục vụ AJAX lấy danh sách phòng khi chọn Rạp.
+        /// </summary>
+        /// <param name="cinemaId">Mã rạp.</param>
+        /// <returns>JSON danh sách phòng.</returns>
         [HttpGet]
         public async Task<IActionResult> GetRoomsByCinema(int cinemaId)
         {
@@ -410,6 +534,12 @@ namespace BAO_Cinemas.Controllers
             return Json(rooms);
         }
 
+        /// <summary>
+        /// Chức năng: API phục vụ AJAX lấy danh sách suất chiếu bận của phòng (giúp Admin tránh xếp trùng giờ).
+        /// </summary>
+        /// <param name="roomId">Mã phòng.</param>
+        /// <param name="date">Ngày cần kiểm tra.</param>
+        /// <returns>JSON danh sách lịch bận.</returns>
         [HttpGet]
         public async Task<IActionResult> GetBusySchedules(int roomId, string? date)
         {
@@ -434,6 +564,11 @@ namespace BAO_Cinemas.Controllers
             return Json(schedules);
         }
 
+        /// <summary>
+        /// Chức năng: Hiển thị danh sách chi tiết các suất chiếu của một phim cụ thể.
+        /// </summary>
+        /// <param name="movieId">Mã phim.</param>
+        /// <returns>View danh sách chi tiết.</returns>
         [HttpGet]
         public async Task<IActionResult> ShowtimeList(int? movieId)
         {
@@ -444,7 +579,6 @@ namespace BAO_Cinemas.Controllers
             var showtimes = await _context.Showtimes
                 .Include(s => s.Cinema)
                 .Include(s => s.Room)
-                // FIX: Include BookingSeats để đếm số ghế đã đặt (thay BookedSeats string)
                 .Include(s => s.BookingSeats)
                 .Where(s => s.MovieId == movieId)
                 .OrderBy(s => s.StartTime)
@@ -454,18 +588,21 @@ namespace BAO_Cinemas.Controllers
             return View(showtimes);
         }
 
+        /// <summary>
+        /// Chức năng: Hủy 1 suất chiếu. Chặn hủy nếu suất chiếu đã có khách đặt vé.
+        /// </summary>
+        /// <param name="id">Mã suất chiếu.</param>
+        /// <returns>Chuyển hướng kèm thông báo.</returns>
         public async Task<IActionResult> DeleteShowtime(int? id)
         {
             if (id == null) return NotFound();
             var showtime = await _context.Showtimes
-                // FIX: Include BookingSeats để kiểm tra thay vì BookedSeats string
                 .Include(s => s.BookingSeats)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (showtime == null) return NotFound();
 
             int currentMovieId = showtime.MovieId;
 
-            // FIX: Kiểm tra có vé đã đặt qua BookingSeats thay vì !string.IsNullOrEmpty(BookedSeats)
             bool hasBookings = showtime.BookingSeats != null &&
                                showtime.BookingSeats.Any(bs => bs.Status == "confirmed");
             if (hasBookings)
@@ -480,13 +617,17 @@ namespace BAO_Cinemas.Controllers
             return RedirectToAction(nameof(ShowtimeList), new { movieId = currentMovieId });
         }
 
+        /// <summary>
+        /// Chức năng: Hủy toàn bộ lịch chiếu của một phim. Chặn hủy nếu có bất kỳ suất nào đã bán vé.
+        /// </summary>
+        /// <param name="movieId">Mã phim.</param>
+        /// <returns>Chuyển hướng kèm thông báo.</returns>
         public async Task<IActionResult> DeleteAllShowtimes(int? movieId)
         {
             if (movieId == null) return NotFound();
             var movie = await _context.Movies.FindAsync(movieId);
             if (movie == null) return NotFound();
 
-            // FIX: Include BookingSeats để kiểm tra trước khi xóa hàng loạt
             var showtimes = await _context.Showtimes
                 .Include(s => s.BookingSeats)
                 .Where(s => s.MovieId == movieId)
@@ -515,9 +656,15 @@ namespace BAO_Cinemas.Controllers
         }
 
         // =================================================================
-        // ======================= BÁO CÁO DOANH THU =======================
+        // ======================= 5. MODULE BÁO CÁO DOANH THU =============
         // =================================================================
 
+        /// <summary>
+        /// Chức năng: Thống kê doanh thu theo Phim và theo Ngày dựa trên tháng được chọn. 
+        /// Đóng gói JSON phục vụ vẽ biểu đồ.
+        /// </summary>
+        /// <param name="selectedMonth">Tháng lựa chọn (Định dạng "YYYY-MM").</param>
+        /// <returns>View chứa các ViewBag dữ liệu thống kê.</returns>
         [HttpGet]
         public async Task<IActionResult> RevenueReport(string selectedMonth)
         {
@@ -540,7 +687,6 @@ namespace BAO_Cinemas.Controllers
 
             ViewBag.SelectedMonth = selectedMonth;
 
-            // FIX: Include BookingSeats để đếm vé (thay SelectedSeats.Split(','))
             var bookings = await _context.Bookings
                 .Include(b => b.Showtime).ThenInclude(s => s.Movie)
                 .Include(b => b.BookingSeats)
@@ -549,7 +695,6 @@ namespace BAO_Cinemas.Controllers
                             b.Status == "confirmed")
                 .ToListAsync();
 
-            // FIX: Đếm vé = COUNT(BookingSeats confirmed) thay vì SelectedSeats.Split(',').Length
             var movieRevenue = bookings
                 .GroupBy(b => b.Showtime.Movie.Title)
                 .Select(g => new MovieRevVM
@@ -584,8 +729,12 @@ namespace BAO_Cinemas.Controllers
     }
 
     // ==========================================
-    // CÁC CLASS PHỤ TRỢ
+    // CÁC LỚP PHỤ TRỢ (ViewModels)
     // ==========================================
+
+    /// <summary>
+    /// Chức năng: Chứa cấu trúc dữ liệu trả về cho bảng thống kê doanh thu theo Phim.
+    /// </summary>
     public class MovieRevVM
     {
         public string MovieName { get; set; }
@@ -593,6 +742,9 @@ namespace BAO_Cinemas.Controllers
         public double Revenue { get; set; }
     }
 
+    /// <summary>
+    /// Chức năng: Chứa cấu trúc dữ liệu trả về cho bảng thống kê doanh thu theo Ngày.
+    /// </summary>
     public class DailyRevVM
     {
         public string DateString { get; set; }
