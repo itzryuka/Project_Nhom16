@@ -1,7 +1,9 @@
 ﻿@model IEnumerable<BAO_Cinemas.Models.Showtime>
 
 @{
+    // Lấy thông tin phim từ ViewBag để hiển thị trên tiêu đề
     var movie = ViewBag.MovieInfo as BAO_Cinemas.Models.Movie;
+    // Cài đặt Title cho trang webx
     ViewData["Title"] = $"Lịch Chiếu: {movie?.Title}";
 }
 
@@ -48,6 +50,7 @@
             <tbody>
                 else
                 {
+
                     <tr>
                         <td colspan="6" class="text-center text-secondary py-5">
                             <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>

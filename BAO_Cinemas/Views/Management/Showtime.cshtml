@@ -228,53 +228,68 @@
                      }
                  }
 
-                 // 3. NẾU ADMIN ĐỔI PHIM KHÁC -> TÍNH LẠI GIỜ KẾT THÚC
+                 // 3. KHI ĐỔI PHIM KHÁC -> CẬP NHẬT LẠI GIỜ KẾT THÚC (vì thời lượng đổi)
                  $('#movieSelect').change(function() {
                      calculateEndTime();
                  });
 
-                 // 4. CHỌN RẠP -> TẢI PHÒNG
+                 // 4. KHI CHỌN RẠP -> DÙNG AJAX TẢI DANH SÁCH PHÒNG TƯƠNG ỨNG
                  $('#cinemaSelect').change(function () {
-                     var cinemaId = $(this).val();
+                     var cinemaId = $(this).val(); // Lấy ID rạp
                      var roomSelect = $('#roomSelect');
 
+                     // Xóa danh sách phòng cũ
                      roomSelect.empty().append('<option value="">-- Chọn phòng --</option>');
 
+                     // Nếu đã chọn rạp
                      if (cinemaId) {
+                         // Gọi API /Management/GetRoomsByCinema để lấy phòng của rạp đó
                          $.getJSON('/Management/GetRoomsByCinema?cinemaId=' + cinemaId, function (data) {
+                             // Thêm từng phòng vào dropdown
                              $.each(data, function (index, room) {
                                  roomSelect.append('<option value="' + room.id + '">' + room.name + '</option>');
                              });
+                             // Mở khóa (enable) ô chọn phòng
                              roomSelect.prop('disabled', false);
                          });
                      } else {
+                         // Chưa chọn rạp thì khóa lại
                          roomSelect.prop('disabled', true);
                      }
+                     // Khi đổi rạp thì tải lại danh sách lịch bận
                      checkBusySchedule();
                  });
 
-                 // 5. CHỌN PHÒNG -> CHECK LỊCH BẬN
+                 // 5. KHI ĐỔI PHÒNG -> CHECK LẠI LỊCH BẬN CỦA PHÒNG ĐÓ
                  $('#roomSelect').change(function () {
                      checkBusySchedule();
                  });
 
-                 // 6. HÀM CHECK LỊCH BẬN TỪ HÔM NAY TRỞ ĐI
+                 // 6. HÀM CHECK LỊCH BẬN DÙNG AJAX
+                 // Gọi API lấy ra các suất chiếu đã tồn tại của phòng chiếu được chọn
                  function checkBusySchedule() {
                      var roomId = $('#roomSelect').val();
                      var startTime = $('#startTimeInput').val();
                      var scheduleBox = $('#busyScheduleBox');
 
+                     // Nếu đã chọn phòng
                      if (roomId) {
                          var dateOnly = "";
+                         // Nếu đã chọn giờ bắt đầu, cắt lấy phần Ngày để lọc lịch chính xác hơn
                          if (startTime) {
                              dateOnly = startTime.split(' ')[0];
                          }
 
+                         // Hiện icon loading trong lúc chờ dữ liệu
                          scheduleBox.html('<div class="text-center mt-4"><div class="spinner-border text-info" role="status"></div><p>Đang tải lịch...</p></div>');
 
+                         // Gọi API lấy lịch chiếu bận
                          $.getJSON('/Management/GetBusySchedules?roomId=' + roomId + '&date=' + dateOnly, function (data) {
                              scheduleBox.empty();
+
+                             // Nếu có lịch bận
                              if (data.length > 0) {
+                                 // Lặp qua và in các lịch bận lên giao diện
                                  $.each(data, function (index, item) {
                                      var html = `<div class="alert alert-danger p-2 mb-2 small fw-bold">
                                                      <i class="bi bi-calendar-x"></i> ${item.date} | ${item.start} - ${item.end}<br>
@@ -283,10 +298,12 @@
                                      scheduleBox.append(html);
                                  });
                              } else {
+                                 // Nếu phòng rảnh hoàn toàn
                                  scheduleBox.html('<div class="alert alert-success p-2 small fw-bold"><i class="bi bi-check-circle-fill"></i> Phòng này hiện đang trống lịch! Bạn có thể xếp thoải mái.</div>');
                              }
                          });
                      } else {
+                         // Nếu chưa chọn phòng
                          scheduleBox.html('<div class="text-center text-light mt-4">Vui lòng chọn <strong>Phòng</strong> để xem các lịch chiếu hiện tại.</div>');
                      }
                  }
