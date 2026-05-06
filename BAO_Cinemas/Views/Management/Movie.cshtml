@@ -1,17 +1,23 @@
-﻿@model IEnumerable<BAO_Cinemas.Models.Movie>
+﻿@* Khai báo Model: Nhận vào một danh sách (IEnumerable) các đối tượng Movie từ Controller *@
+@model IEnumerable<BAO_Cinemas.Models.Movie>
 @{
     ViewData["Title"] = "Quản lý Phim";
     // Mặc định nó sẽ lấy _Layout.cshtml có chứa Navbar của bạn
 }
 
+@* min-vh-100: Đảm bảo nền tối (bg-dark) luôn phủ kín ít nhất 100% chiều cao màn hình *@
 <div class="container-fluid bg-dark text-white min-vh-100 p-4">
 
+    @* --- PHẦN 1: HEADER (Tiêu đề, Thanh tìm kiếm, Nút chức năng) --- *@
+    @* d-flex justify-content-between: Chia thanh công cụ thành 3 phần đều nhau về 2 phía và ở giữa *@
     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
 
+        @* Cột 1 (25%): Tiêu đề trang *@
         <div class="text-start" style="width: 25%;">
             <h2 class="fw-bold text-color m-0">Quản lý Phim</h2>
         </div>
 
+        @* Cột 2 (50%): Thanh tìm kiếm nhanh bằng Client-side (không cần load lại trang) *@
         <div class="text-center" style="width: 50%;">
             <div class="input-group">
                 <span class="input-group-text bg-secondary border-0 text-white"><i class="bi bi-search"></i></span>
@@ -19,6 +25,7 @@
             </div>
         </div>
 
+        @* Cột 3 (25%): Các nút hành động *@
         <div class="text-end" style="width: 25%;">
             <a asp-action="CreateMovie" class="btn btn-light fw-bold me-2">
                 <i class="bi bi-plus-lg"></i> Thêm phim
@@ -29,6 +36,8 @@
         </div>
     </div>
 
+    @* --- PHẦN 2: THÔNG BÁO HỆ THỐNG (TempData) --- *@
+    @* TempData được dùng để lưu câu thông báo từ Controller truyền sang sau khi Thêm/Sửa/Xóa thành công hoặc thất bại. Nó sẽ tự biến mất sau khi hiển thị. *@
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
@@ -45,20 +54,28 @@
         </div>
     }
 
+    @* --- PHẦN 3: DANH SÁCH PHIM --- *@
     <div id="movieList">
+        @* Kiểm tra xem Model có dữ liệu không, có thì mới bắt đầu vòng lặp *@
         @if (Model != null && Model.Any())
         {
             foreach (var item in Model)
             {
-                // Thẻ data-title dùng để JS lấy tên phim ra lọc
+                @*
+                   data-title: Thuộc tính tự tạo (Custom Data Attribute). 
+                   Ở đây ta chuyển tên phim thành chữ thường (ToLower) để đưa cho Javascript tìm kiếm dễ dàng hơn.
+                *@
                 <div class="movie-row card mb-3 bg-secondary border-0 shadow-sm" data-title="@item.Title.ToLower()">
                     <div class="row g-0 align-items-center">
 
+                        @* Cột chứa hình ảnh Poster *@
                         <div class="col-auto" style="width: 90px; height: 130px; padding: 5px;">
+                            @* object-fit: cover giúp ép ảnh vào khung 90x130 mà không bị bóp méo tỉ lệ *@
                             <img src="@item.PosterUrl" class="rounded"
                                  style="width: 100%; height: 100%; object-fit: cover; object-position: center;" alt="poster">
                         </div>
 
+                        @* Cột chứa thông tin phim *@
                         <div class="col px-4 text-light">
                             <h5 class="fw-bold text-color mb-1">@item.Title</h5>
                             <p class="mb-1 small">
@@ -67,10 +84,17 @@
                             </p>
                         </div>
 
+                        @* Cột chứa Nút Sửa / Xóa *@
                         <div class="col-auto pe-4">
+                            @* Nút Sửa: Truyền ID phim sang action Edit *@
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info text-dark fw-bold me-2">
                                 <i class="bi bi-pencil-square"></i> Sửa
                             </a>
+                            @* Nút Xóa:
+                               1. Truyền ID phim sang action Delete 
+                               2. onclick="return confirm(...)": Cảnh báo Pop-up của trình duyệt. 
+                                  Nếu user chọn "Cancel", link sẽ không chạy (hủy thao tác xóa).
+                            *@
                             <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger fw-bold"
                                onclick="return confirm('Bạn có chắc chắn muốn xóa bộ phim này khỏi dữ liệu?');">
                                 <i class="bi bi-trash"></i> Xóa
@@ -82,6 +106,7 @@
         }
         else
         {
+            @* Giao diện hiển thị khi Database chưa có bộ phim nào (Empty State) *@
             <div class="text-center text-secondary py-5">
                 <h4>Chưa có bộ phim nào trong kho.</h4>
                 <p>Hãy bấm "Thêm phim" để bắt đầu cập nhật dữ liệu rạp chiếu.</p>
@@ -90,13 +115,19 @@
     </div>
 </div>
 
+@* --- PHẦN 4: JAVASCRIPT & CSS CHỨC NĂNG --- *@
 @section Scripts {
     <script>
+        // $(document).ready: Đảm bảo HTML load xong hết thì code JS mới chạy
         $(document).ready(function () {
+            // Bắt sự kiện mỗi khi người dùng gõ phím (keyup) vào ô có id="searchInput"
             $("#searchInput").on("keyup", function () {
-                var value = $(this).val().toLowerCase(); // Lấy chữ người dùng gõ
+                // Lấy giá trị vừa gõ, chuyển hóa thành chữ thường để không phân biệt hoa/thường
+                var value = $(this).val().toLowerCase();
+                // Duyệt qua tất cả các thẻ có class là .movie-row (mỗi thẻ tương đương 1 bộ phim)
                 $(".movie-row").filter(function () {
-                    // Kiểm tra xem tên phim (data-title) có chứa chữ vừa gõ không
+                    // $(this).toggle(điều_kiện): Nếu điều kiện ĐÚNG thì hiện thẻ này lên, SAI thì ẩn đi (display: none).
+                    // indexOf(value) > -1: Nghĩa là chuỗi trong data-title CÓ CHỨA chữ mà người dùng vừa gõ.
                     $(this).toggle($(this).data("title").indexOf(value) > -1)
                 });
             });
@@ -105,11 +136,13 @@
 }
 
 <style>
-    /* Hiệu ứng mượt mà khi hover vào thanh phim */
+    /* Hiệu ứng mượt mà (transition) mất 0.2s khi có sự thay đổi trạng thái */
     .movie-row {
         transition: all 0.2s ease-in-out;
     }
-
+        /* Khi trỏ chuột (hover) vào thẻ chứa phim:
+           1. Đổi màu nền sáng hơn một chút
+           2. transform: scale(1.01) -> Phóng to thẻ lên 1% để tạo cảm giác tương tác (nổi lên) */
         .movie-row:hover {
             background-color: #495057 !important;
             transform: scale(1.01);

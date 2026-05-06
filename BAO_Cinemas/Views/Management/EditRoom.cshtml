@@ -1,34 +1,48 @@
-﻿@model Room
+﻿@* Khai báo kiểu dữ liệu của đối tượng truyền từ Controller sang View là class Room *@
+@model Room
 
 @{
     ViewData["Title"] = "Sửa Phòng Chiếu";
 }
 
+@* Container chính: Dùng màu nền tối (bg-dark), chữ trắng (text-white) và bo góc để tạo giao diện hiện đại *@
 <div class="container bg-dark text-white p-4 mt-4 rounded shadow" style="max-width: 600px;">
+
+    @* Phần tiêu đề và nút quay lại *@
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
         <h2 class="fw-bold text-info m-0">Sửa: @Model.Name</h2>
+
+        @* Link quay lại danh sách phòng của rạp hiện tại, truyền cinemaId để Controller biết quay về rạp nào *@
         <a asp-action="RoomList" asp-route-cinemaId="@Model.CinemaId" class="btn btn-outline-light">
             <i class="bi bi-arrow-left"></i> Quay lại
         </a>
     </div>
 
+    @* Form gửi dữ liệu lên Action "EditRoom" trong Controller với phương thức POST *@
     <form asp-action="EditRoom" method="post">
+
+        @* Biến ẩn (Hidden): Cực kỳ quan trọng để lưu ID và CinemaId
+           nhằm định danh bản ghi nào cần cập nhật mà người dùng không cần thấy trên giao diện *@
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="CinemaId" />
 
+        @* Hiển thị danh sách các lỗi nhập liệu nếu có (Server-side validation) *@
         <div asp-validation-summary="All" class="text-danger mb-3 fw-bold"></div>
 
+        @* Nhập tên phòng *@
         <div class="mb-3">
             <label asp-for="Name" class="form-label fw-bold">Tên Phòng <span class="text-danger">*</span></label>
             <input asp-for="Name" class="form-control bg-secondary text-white border-0" required />
             <span asp-validation-for="Name" class="text-danger small"></span>
         </div>
 
+        @* Nhập tổng số lượng ghế *@
         <div class="mb-3">
             <label asp-for="TotalSeats" class="form-label fw-bold">Số lượng ghế</label>
             <input asp-for="TotalSeats" type="number" class="form-control bg-secondary text-white border-0" />
         </div>
 
+        @* Lựa chọn trạng thái của phòng *@
         <div class="mb-4">
             <label asp-for="Status" class="form-label fw-bold">Trạng thái hoạt động</label>
             <select asp-for="Status" class="form-select bg-secondary text-white border-0">
@@ -38,6 +52,7 @@
             </select>
         </div>
 
+        @* Nút gửi form *@
         <div class="text-end border-top border-secondary pt-3">
             <button type="submit" class="btn btn-info fw-bold px-4 py-2 text-dark">
                 <i class="bi bi-check-circle"></i> Cập nhật Thông Tin
@@ -46,6 +61,7 @@
     </form>
 </div>
 
+@* Phần script để kiểm tra dữ liệu ngay tại trình duyệt (Client-side validation) *@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

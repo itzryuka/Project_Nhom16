@@ -22,11 +22,11 @@ namespace BAO_Cinemas.Controllers
         {
             // Lấy toàn bộ danh sách phim từ Database
             var movies = await _context.Movies
-                                       .Include(m => m.Showtimes)
-                                            .ThenInclude(s => s.Room)   // Lấy Phòng (để check nhãn IMAX)
-                                       .Include(m => m.Showtimes)       // Lệnh này bắt buộc phải lặp lại trước mỗi ThenInclude
-                                            .ThenInclude(s => s.Cinema) // Lấy Rạp (để in ra tên rạp lúc gom nhóm nhóm)
-                                       .ToListAsync();
+                .Include(m => m.Showtimes)
+                    .ThenInclude(s => s.Room)   // Lấy Phòng (để check nhãn IMAX)
+                .Include(m => m.Showtimes)       // Lệnh này bắt buộc phải lặp lại trước mỗi ThenInclude
+                    .ThenInclude(s => s.Cinema) // Lấy Rạp (để in ra tên rạp lúc gom nhóm nhóm)
+                .ToListAsync();
 
             // Truyền danh sách movies này sang cho file Index.cshtml
             return View(movies);
